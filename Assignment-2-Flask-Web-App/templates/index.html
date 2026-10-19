@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Customer Churn Predictor</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="container">
+  <h1>Customer Churn Predictor</h1>
+  <p class="subtitle">Enter a telecom customer's details to find out whether they are likely to leave.</p>
+
+  {% if errors %}
+  <div class="alert error">
+    <strong>Please fix the following:</strong>
+    <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+  </div>
+  {% endif %}
+
+  {% if result %}
+  <div class="alert result {{ 'churn' if result.is_churn else 'stay' }}">
+    <div class="result-label">{{ result.label }}</div>
+    <div>{{ result.message }}</div>
+    <div class="prob">Estimated churn probability: {{ result.probability }}%</div>
+  </div>
+  {% endif %}
+
+  {% macro select(name, label) %}
+  <div class="field">
+    <label for="{{ name }}">{{ label }}</label>
+    <select id="{{ name }}" name="{{ name }}" required>
+      <option value="">-- Select --</option>
+      {% for opt in choices[name] %}
+      <option value="{{ opt }}" {{ 'selected' if form.get(name) == opt }}>
+        {% if name == 'SeniorCitizen' %}{{ 'Yes' if opt == '1' else 'No' }}{% else %}{{ opt }}{% endif %}
+      </option>
+      {% endfor %}
+    </select>
+  </div>
+  {% endmacro %}
+
+  {% macro number(name, label, hint, step) %}
+  <div class="field">
+    <label for="{{ name }}">{{ label }}</label>
+    <input type="number" id="{{ name }}" name="{{ name }}" step="{{ step }}" min="0"
+           value="{{ form.get(name, '') }}" placeholder="{{ hint }}" required>
+  </div>
+  {% endmacro %}
+
+  <form method="POST" action="{{ url_for('predict') }}">
+    <fieldset>
+      <legend>Customer profile</legend>
+      <div class="grid">
+        {{ select('gender', 'Gender') }}
+        {{ select('SeniorCitizen', 'Senior citizen') }}
+        {{ select('Partner', 'Has a partner') }}
+        {{ select('Dependents', 'Has dependents') }}
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Account &amp; billing</legend>
+      <div class="grid">
+        {{ number('tenure', 'Tenure (months)', 'e.g. 12', '1') }}
+        {{ select('Contract', 'Contract type') }}
+        {{ select('PaperlessBilling', 'Paperless billing') }}
+        {{ select('PaymentMethod', 'Payment method') }}
+        {{ number('MonthlyCharges', 'Monthly charges ($)', 'e.g. 70.50', '0.01') }}
+        {{ number('TotalCharges', 'Total charges ($)', 'e.g. 850.00', '0.01') }}
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Services</legend>
+      <div class="grid">
+        {{ select('PhoneService', 'Phone service') }}
+        {{ select('MultipleLines', 'Multiple lines') }}
+        {{ select('InternetService', 'Internet service') }}
+        {{ select('OnlineSecurity', 'Online security') }}
+        {{ select('OnlineBackup', 'Online backup') }}
+        {{ select('DeviceProtection', 'Device protection') }}
+        {{ select('TechSupport', 'Tech support') }}
+        {{ select('StreamingTV', 'Streaming TV') }}
+        {{ select('StreamingMovies', 'Streaming movies') }}
+      </div>
+    </fieldset>
+
+    <button type="submit">Predict Churn</button>
+  </form>
+
+  <p class="footer">AI Assignment 2 &mdash; University of Lahore. Model: Logistic Regression trained on the Telco Customer Churn dataset.</p>
+</div>
+</body>
+</html>
